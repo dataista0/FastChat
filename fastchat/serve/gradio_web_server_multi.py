@@ -10,39 +10,21 @@ from typing import List
 
 import gradio as gr
 
-from fastchat.serve.gradio_block_arena_anony import (
-    build_side_by_side_ui_anony,
-    load_demo_side_by_side_anony,
-    set_global_vars_anony,
-)
 from fastchat.serve.gradio_block_arena_named import (
     build_side_by_side_ui_named,
     load_demo_side_by_side_named,
     set_global_vars_named,
 )
-from fastchat.serve.gradio_block_arena_vision import (
-    build_single_vision_language_model_ui,
-)
-from fastchat.serve.gradio_block_arena_vision_anony import (
-    build_side_by_side_vision_ui_anony,
-    load_demo_side_by_side_vision_anony,
-)
-from fastchat.serve.gradio_block_arena_vision_named import (
-    build_side_by_side_vision_ui_named,
-    load_demo_side_by_side_vision_named,
-)
+
 from fastchat.serve.gradio_global_state import Context
 
 from fastchat.serve.gradio_web_server import (
     set_global_vars,
     block_css,
-    build_single_model_ui,
-    build_about,
     get_model_list,
     load_demo_single,
     get_ip,
 )
-from fastchat.serve.monitor.monitor import build_leaderboard_tab
 from fastchat.utils import (
     build_logger,
     get_window_url_params_js,
@@ -86,29 +68,20 @@ def load_demo(context: Context, request: gr.Request):
         )
 
     # Text models
-    if args.vision_arena:
-        side_by_side_anony_updates = load_demo_side_by_side_vision_anony()
+    
 
-        side_by_side_named_updates = load_demo_side_by_side_vision_named(
-            context,
-        )
-
-        direct_chat_updates = load_demo_single(context, request.query_params)
-    else:
-        direct_chat_updates = load_demo_single(context, request.query_params)
-        side_by_side_anony_updates = load_demo_side_by_side_anony(
-            context.all_text_models, request.query_params
-        )
-        side_by_side_named_updates = load_demo_side_by_side_named(
-            context.text_models, request.query_params
-        )
-
-    tabs_list = (
-        [gr.Tabs(selected=inner_selected)]
-        + side_by_side_anony_updates
-        + side_by_side_named_updates
-        + direct_chat_updates
+    #direct_chat_updates = load_demo_single(context, request.query_params)
+    
+    side_by_side_named_updates = load_demo_side_by_side_named(
+        context.text_models, request.query_params
     )
+
+    #tabs_list = (
+    #    [gr.Tabs(selected=inner_selected)]
+    #    + side_by_side_named_updates
+    #    + direct_chat_updates
+    #)
+    tabs_list = side_by_side_named_updates# + direct_chat_updates
 
     return tabs_list
 
@@ -116,10 +89,8 @@ def load_demo(context: Context, request: gr.Request):
 def build_demo(
     context: Context, elo_results_file: str, leaderboard_table_file, arena_hard_table
 ):
-    if args.show_terms_of_use:
-        load_js = get_window_url_params_with_tos_js
-    else:
-        load_js = get_window_url_params_js
+    
+    load_js = get_window_url_params_js
 
     head_js = """
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -138,71 +109,27 @@ window.__gradio_mode__ = "app";
         """
     text_size = gr.themes.sizes.text_lg
     with gr.Blocks(
-        title="Chatbot Arena (formerly LMSYS): Free AI Chat to Compare & Test Best AI Chatbots",
+        title="Hola",
         theme=gr.themes.Default(text_size=text_size),
         css=block_css,
         head=head_js,
     ) as demo:
-        with gr.Tabs() as inner_tabs:
-            if args.vision_arena:
-                with gr.Tab("⚔️ Arena (battle)", id=0) as arena_tab:
-                    arena_tab.select(None, None, None, js=load_js)
-                    side_by_side_anony_list = build_side_by_side_vision_ui_anony(
-                        context,
-                        random_questions=args.random_questions,
-                    )
-                with gr.Tab("⚔️ Arena (side-by-side)", id=1) as side_by_side_tab:
-                    side_by_side_tab.select(None, None, None, js=alert_js)
-                    side_by_side_named_list = build_side_by_side_vision_ui_named(
-                        context, random_questions=args.random_questions
-                    )
+        #with gr.Tabs() as inner_tabs:
+        #    with gr.Tab("⚔️ Arena (side-by-side)", id=1) as side_by_side_tab:
+        #        side_by_side_tab.select(None, None, None, js=alert_js)
+        #        side_by_side_named_list = build_side_by_side_ui_named(
+        #            context.text_models
+        #        )
 
-                with gr.Tab("💬 Direct Chat", id=2) as direct_tab:
-                    direct_tab.select(None, None, None, js=alert_js)
-                    single_model_list = build_single_vision_language_model_ui(
-                        context,
-                        add_promotion_links=True,
-                        random_questions=args.random_questions,
-                    )
+        side_by_side_named_list = build_side_by_side_ui_named(context.text_models)
+        
+        #demo_tabs = (
+        #        [inner_tabs]
+        #        + side_by_side_named_list
+        #    )
+        demo_tabs = side_by_side_named_list
 
-            else:
-                with gr.Tab("⚔️ Arena (battle)", id=0) as arena_tab:
-                    arena_tab.select(None, None, None, js=load_js)
-                    side_by_side_anony_list = build_side_by_side_ui_anony(
-                        context.all_text_models
-                    )
-
-                with gr.Tab("⚔️ Arena (side-by-side)", id=1) as side_by_side_tab:
-                    side_by_side_tab.select(None, None, None, js=alert_js)
-                    side_by_side_named_list = build_side_by_side_ui_named(
-                        context.text_models
-                    )
-
-                with gr.Tab("💬 Direct Chat", id=2) as direct_tab:
-                    direct_tab.select(None, None, None, js=alert_js)
-                    single_model_list = build_single_model_ui(
-                        context.text_models, add_promotion_links=True
-                    )
-
-            demo_tabs = (
-                [inner_tabs]
-                + side_by_side_anony_list
-                + side_by_side_named_list
-                + single_model_list
-            )
-
-            if elo_results_file:
-                with gr.Tab("🏆 Leaderboard", id=3):
-                    build_leaderboard_tab(
-                        elo_results_file,
-                        leaderboard_table_file,
-                        arena_hard_table,
-                        show_plot=True,
-                    )
-
-            with gr.Tab("ℹ️ About Us", id=4):
-                about = build_about()
-
+            
         context_state = gr.State(context)
         url_params = gr.JSON(visible=False)
 
@@ -311,7 +238,6 @@ if __name__ == "__main__":
     # Set global variables
     set_global_vars(args.controller_url, args.moderate, args.use_remote_storage)
     set_global_vars_named(args.moderate)
-    set_global_vars_anony(args.moderate)
     text_models, all_text_models = get_model_list(
         args.controller_url,
         args.register_api_endpoint_file,

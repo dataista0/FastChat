@@ -361,19 +361,19 @@ class Conversation:
 
     def to_gradio_chatbot(self):
         """Convert the conversation to gradio chatbot format."""
-        from fastchat.serve.vision.image import ImageFormat
+        #from fastchat.serve.vision.image import ImageFormat
 
         ret = []
         for i, (role, msg) in enumerate(self.messages[self.offset :]):
             if i % 2 == 0:
-                if type(msg) is tuple:
-                    msg, images = msg
-                    image = images[0]  # Only one image on gradio at one time
-                    if image.image_format == ImageFormat.URL:
-                        img_str = f'<img src="{image.url}" alt="user upload image" />'
-                    elif image.image_format == ImageFormat.BYTES:
-                        img_str = f'<img src="data:image/{image.filetype};base64,{image.base64_str}" alt="user upload image" />'
-                    msg = img_str + msg.replace("<image>\n", "").strip()
+                # if type(msg) is tuple:
+                #     msg, images = msg
+                #     image = images[0]  # Only one image on gradio at one time
+                #     if image.image_format == ImageFormat.URL:
+                #         img_str = f'<img src="{image.url}" alt="user upload image" />'
+                #     elif image.image_format == ImageFormat.BYTES:
+                #         img_str = f'<img src="data:image/{image.filetype};base64,{image.base64_str}" alt="user upload image" />'
+                #     msg = img_str + msg.replace("<image>\n", "").strip()
 
                 ret.append([msg, None])
             else:
@@ -465,7 +465,7 @@ class Conversation:
         from vertexai.preview.generative_models import Image
         import base64
         import requests
-        from fastchat.serve.vision.image import ImageFormat
+        #from fastchat.serve.vision.image import ImageFormat
 
         if self.system_message == "":
             ret = []
@@ -530,7 +530,7 @@ class Conversation:
         return ret
 
     def to_reka_api_messages(self):
-        from fastchat.serve.vision.image import ImageFormat
+        #from fastchat.serve.vision.image import ImageFormat
         from reka import ChatMessage, TypedMediaContent, TypedText
 
         ret = []
@@ -641,7 +641,7 @@ class Conversation:
     def extract_text_and_image_hashes_from_messages(self):
         import hashlib
         from fastchat.utils import load_image
-        from fastchat.serve.vision.image import ImageFormat
+        #from fastchat.serve.vision.image import ImageFormat
 
         messages = []
 
